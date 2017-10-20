@@ -29,6 +29,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     int frame_count = 0;
     int point_last = 0;
     float sum_avg = 0.0f;
+
     final int  CURVE_LENGTH = 16;
     float[] curve = new float[CURVE_LENGTH];
 
@@ -49,8 +50,10 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         try {
             mCamera.setPreviewDisplay(holder);
             mCamera.setPreviewCallback(mPreviewCallback);
-            mCamera.getParameters().setPreviewSize(640, 480);
-            mCamera.getParameters().setFlashMode(FLASH_MODE_ON);
+            Camera.Parameters parameters = mCamera.getParameters();
+            parameters.setPreviewSize(1280, 720);
+            parameters.setFlashMode(FLASH_MODE_ON);
+            mCamera.setParameters(parameters);
             mCamera.startPreview();
         } catch (IOException e) {
             Log.d(TAG, "Error setting camera preview: " + e.getMessage());
@@ -102,7 +105,8 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
             }
 
             heartbeat = sign_count * fps *60.0f / frame_count/2.0f;
-            String str = String.format("heartbeat:%.2f  sum:%.2f , fps: %.2f",  heartbeat, sum, fps);
+            float fCount = (float)frame_count;
+            String str = String.format("heartbeat:%.2f  Time:%.2f , fps: %.2f",  heartbeat, fCount/fps, fps);
             ((HeartBeatActivity)getContext()).updateButton(str);
 
 
@@ -139,8 +143,11 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         try {
             mCamera.setPreviewDisplay(mHolder);
             mCamera.setPreviewCallback(mPreviewCallback);
-            mCamera.getParameters().setPreviewSize(640, 480);
-            mCamera.getParameters().setFlashMode(FLASH_MODE_ON);
+            Camera.Parameters parameters = mCamera.getParameters();
+            parameters.setPreviewSize(1280, 720);
+            parameters.setFlashMode(FLASH_MODE_ON);
+            mCamera.setParameters(parameters);
+
             mCamera.startPreview();
 
         } catch (Exception e){

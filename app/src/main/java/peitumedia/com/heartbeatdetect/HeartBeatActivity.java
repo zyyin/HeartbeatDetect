@@ -4,6 +4,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.hardware.Camera;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -76,6 +77,39 @@ public class HeartBeatActivity extends AppCompatActivity {
 
 
         mCamera = getCameraInstance();
+
+        try{
+            Camera.Parameters parameters = mCamera.getParameters();
+            if(this.getResources().getConfiguration().orientation != Configuration.ORIENTATION_LANDSCAPE)
+
+            {
+
+                //如果是竖屏
+
+                parameters.set("orientation", "portrait");
+
+                //在2.2以上取消下行注释
+
+                mCamera.setDisplayOrientation(90);
+
+            }
+
+            else
+
+            {
+
+                parameters.set("orientation", "landscape");
+
+                //在2.2以上取消下行注释
+                mCamera.setDisplayOrientation(0);
+
+            }
+            mCamera.setParameters(parameters);
+        }catch(Exception ex ){
+            mCamera.release();
+
+        }
+
         mVisible = true;
         mControlsView = findViewById(R.id.fullscreen_content_controls);
         mPreview = new CameraPreview(this, mCamera);
@@ -194,6 +228,7 @@ public class HeartBeatActivity extends AppCompatActivity {
         Camera c = null;
         try {
             c = Camera.open(); // attempt to get a Camera instance
+
         }
         catch (Exception e){
             // Camera is not available (in use or does not exist)

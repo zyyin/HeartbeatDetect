@@ -14,6 +14,7 @@ import java.io.IOException;
 import static android.content.ContentValues.TAG;
 import static android.hardware.Camera.Parameters.FLASH_MODE_OFF;
 import static android.hardware.Camera.Parameters.FLASH_MODE_ON;
+import static android.hardware.Camera.Parameters.FLASH_MODE_TORCH;
 
 /** A basic Camera preview class */
 public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
@@ -33,6 +34,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     final int  CURVE_LENGTH = 16;
     float[] curve = new float[CURVE_LENGTH];
 
+    private  boolean mFlash = false;
     public CameraPreview(Context context, Camera camera) {
         super(context);
         mCamera = camera;
@@ -45,19 +47,46 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
     }
 
-    public void surfaceCreated(SurfaceHolder holder) {
-        // The Surface has been created, now tell the camera where to draw the preview.
+    public void startPreview() {
         try {
-            mCamera.setPreviewDisplay(holder);
+            mCamera.setPreviewDisplay(mHolder);
             mCamera.setPreviewCallback(mPreviewCallback);
             Camera.Parameters parameters = mCamera.getParameters();
             parameters.setPreviewSize(1280, 720);
-            parameters.setFlashMode(FLASH_MODE_ON);
+            parameters.setFlashMode(FLASH_MODE_TORCH);
             mCamera.setParameters(parameters);
             mCamera.startPreview();
+            mCamera.autoFocus(new Camera.AutoFocusCallback() {
+                    public void onAutoFocus(boolean success, Camera camera) {
+                        if(!mFlash)
+                            return;
+                        Camera.Parameters parameters = mCamera.getParameters();
+                        parameters.setFlashMode(FLASH_MODE_TORCH);
+                        mCamera.setParameters(parameters);
+                    }
+                });
         } catch (IOException e) {
             Log.d(TAG, "Error setting camera preview: " + e.getMessage());
         }
+    }
+    public void stopPreview() {
+        try {
+            mCamera.autoFocus(null);
+            mCamera.setPreviewCallback(null);
+            Camera.Parameters parameters = mCamera.getParameters();
+            parameters.setFlashMode(FLASH_MODE_OFF);
+
+            mCamera.setParameters(parameters);
+            mCamera.stopPreview();
+        } catch (Exception e){
+            // ignore: tried to stop a non-existent preview
+        }
+    }
+    public void surfaceCreated(SurfaceHolder holder) {
+        // The Surface has been created, now tell the camera where to draw the preview.
+
+            startPreview();
+
     }
     //Implement the previewCallback
     private final class PreviewCallback
@@ -116,6 +145,8 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
     public void surfaceDestroyed(SurfaceHolder holder) {
         // empty. Take care of releasing the Camera preview in your activity.
+
+        stopPreview();
     }
 
     public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
@@ -129,9 +160,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
         // stop preview before making changes
         try {
-            mCamera.setPreviewCallback(null);
-            mCamera.getParameters().setFlashMode(FLASH_MODE_OFF);
-            mCamera.stopPreview();
+            stopPreview();
         } catch (Exception e){
             // ignore: tried to stop a non-existent preview
         }
@@ -140,18 +169,23 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         // reformatting changes here
 
         // start preview with new settings
-        try {
-            mCamera.setPreviewDisplay(mHolder);
-            mCamera.setPreviewCallback(mPreviewCallback);
-            Camera.Parameters parameters = mCamera.getParameters();
-            parameters.setPreviewSize(1280, 720);
-            parameters.setFlashMode(FLASH_MODE_ON);
-            mCamera.setParameters(parameters);
 
-            mCamera.startPreview();
+            startPreview();
+    }
 
-        } catch (Exception e){
-            Log.d(TAG, "Error starting camera preview: " + e.getMessage());
+    public void setFlash() {
+
+        Camera.Parameters parameters = mCamera.getParameters();
+
+        if (mFlash == false) {
+            parameters.setFlashMode(FLASH_MODE_TORCH);
+        } else  {
+
+            parameters.setFlashMode(FLASH_MODE_OFF);
+
         }
+        mCamera.setParameters(parameters);
+        mFlash = !mFlash;
+
     }
 }

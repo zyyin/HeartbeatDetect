@@ -75,49 +75,6 @@ public class HeartBeatActivity extends AppCompatActivity {
 
         }
 
-
-        mCamera = getCameraInstance();
-
-        try{
-            Camera.Parameters parameters = mCamera.getParameters();
-            if(this.getResources().getConfiguration().orientation != Configuration.ORIENTATION_LANDSCAPE)
-
-            {
-
-                //如果是竖屏
-
-                parameters.set("orientation", "portrait");
-
-                //在2.2以上取消下行注释
-
-                mCamera.setDisplayOrientation(90);
-
-            }
-
-            else
-
-            {
-
-                parameters.set("orientation", "landscape");
-
-                //在2.2以上取消下行注释
-                mCamera.setDisplayOrientation(0);
-
-            }
-            mCamera.setParameters(parameters);
-        }catch(Exception ex ){
-            mCamera.release();
-
-        }
-
-        mVisible = true;
-        mControlsView = findViewById(R.id.fullscreen_content_controls);
-        mPreview = new CameraPreview(this, mCamera);
-        FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
-        preview.addView(mPreview);
-
-
-
         // Upon interacting with UI controls, delay any scheduled hide()
         // operations to prevent the jarring behavior of controls going away
         // while interacting with the UI.
@@ -142,9 +99,7 @@ public class HeartBeatActivity extends AppCompatActivity {
     private final View.OnTouchListener mDelayHideTouchListener = new View.OnTouchListener() {
         @Override
         public boolean onTouch(View view, MotionEvent motionEvent) {
-            if (AUTO_HIDE) {
-                delayedHide(AUTO_HIDE_DELAY_MILLIS);
-            }
+            mPreview.setFlash();
             return false;
         }
     };
@@ -155,6 +110,52 @@ public class HeartBeatActivity extends AppCompatActivity {
         } else {
             show();
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mPreview.stopPreview();
+        mCamera.release();
+        mCamera = null;
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mCamera = getCameraInstance();
+
+        try{
+            Camera.Parameters parameters = mCamera.getParameters();
+            if(this.getResources().getConfiguration().orientation != Configuration.ORIENTATION_LANDSCAPE)
+
+            {
+                parameters.set("orientation", "portrait");
+                mCamera.setDisplayOrientation(90);
+
+            } else
+            {
+                parameters.set("orientation", "landscape");
+                mCamera.setDisplayOrientation(0);
+
+            }
+            mCamera.setParameters(parameters);
+        }catch(Exception ex ){
+            mCamera.release();
+
+        }
+
+        mVisible = true;
+        mControlsView = findViewById(R.id.fullscreen_content_controls);
+        mPreview = new CameraPreview(this, mCamera);
+        FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
+        preview.addView(mPreview);
+
     }
 
     private void hide() {

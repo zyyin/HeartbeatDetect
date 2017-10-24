@@ -23,7 +23,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     private PreviewCallback mPreviewCallback = new PreviewCallback();
 
     float factor = 0.96f;
-    float thr = 0.05f;
+    float thr = 0.6f;
     int sign_last = 1;
     int sign = 1;
     float sign_count = 0f;
@@ -31,7 +31,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     int point_last = 0;
     float sum_avg = 0.0f;
 
-    final int  CURVE_LENGTH = 16;
+    final int  CURVE_LENGTH = 12;
     float[] curve = new float[CURVE_LENGTH];
 
     private  boolean mFlash = false;
@@ -57,14 +57,14 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
             mCamera.setParameters(parameters);
             mCamera.startPreview();
             mCamera.autoFocus(new Camera.AutoFocusCallback() {
-                    public void onAutoFocus(boolean success, Camera camera) {
-                        if(!mFlash)
-                            return;
-                        Camera.Parameters parameters = mCamera.getParameters();
-                        parameters.setFlashMode(FLASH_MODE_TORCH);
-                        mCamera.setParameters(parameters);
-                    }
-                });
+                public void onAutoFocus(boolean success, Camera camera) {
+                    if(!mFlash)
+                        return;
+                    Camera.Parameters parameters = mCamera.getParameters();
+                    parameters.setFlashMode(FLASH_MODE_TORCH);
+                    mCamera.setParameters(parameters);
+                }
+            });
         } catch (IOException e) {
             Log.d(TAG, "Error setting camera preview: " + e.getMessage());
         }
@@ -85,7 +85,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     public void surfaceCreated(SurfaceHolder holder) {
         // The Surface has been created, now tell the camera where to draw the preview.
 
-            startPreview();
+        startPreview();
 
     }
     //Implement the previewCallback
@@ -118,7 +118,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
                 curve[CURVE_LENGTH - 1] = sum;
                 for (int k = 0;k < CURVE_LENGTH/2;k++)
                 {
-                    diff += (curve[k] - curve[ CURVE_LENGTH/2 - k]);
+                    diff += (curve[k] - curve[ CURVE_LENGTH -1 - k]);
                 }
                 diff /= (CURVE_LENGTH / 2);
 
@@ -170,7 +170,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
         // start preview with new settings
 
-            startPreview();
+        startPreview();
     }
 
     public void setFlash() {
@@ -186,6 +186,5 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         }
         mCamera.setParameters(parameters);
         mFlash = !mFlash;
-
     }
 }
